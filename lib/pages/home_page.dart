@@ -14,6 +14,8 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   double? _deviceHeight, _deviceWidth;
 
+  String? _selectedCoin = 'bitcoin';
+
   HTTPService? _httpService;
   @override
   void initState() {
@@ -43,7 +45,13 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _selectedCoinDropdown() {
-    List<String> _coins = ['bitcoin', 'ethereum', 'ripple', 'litecoin'];
+    List<String> _coins = [
+      'bitcoin',
+      'ethereum',
+      'tether',
+      'cardano',
+      'ripple'
+    ];
     List<DropdownMenuItem<String>> _dropdownItems = _coins
         .map(
           (e) => DropdownMenuItem(
@@ -60,21 +68,26 @@ class _HomePageState extends State<HomePage> {
         )
         .toList();
     return DropdownButton(
-      value: _coins.first,
+      value: _selectedCoin,
       items: _dropdownItems,
-      onChanged: (value) {},
+      onChanged: (value) {
+        setState(() {
+          _selectedCoin = value.toString();
+        });
+      },
       dropdownColor: const Color.fromRGBO(83, 88, 206, 1.0),
       iconSize: 30,
       icon: const Icon(
         Icons.arrow_drop_down_sharp,
         color: Colors.white,
       ),
+      underline: Container(),
     );
   }
 
   Widget _dataWidget() {
     return FutureBuilder(
-      future: _httpService!.get('/coins/bitcoin'),
+      future: _httpService!.get('/coins/$_selectedCoin'),
       builder: (BuildContext ctx, AsyncSnapshot snapshot) {
         if (snapshot.hasData) {
           Map _data = jsonDecode(snapshot.data.toString());
@@ -86,8 +99,10 @@ class _HomePageState extends State<HomePage> {
             mainAxisSize: MainAxisSize.max,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              _coinImageWidget(_data['image']['large']),
               _currentPriceWidget(_usdPrice),
               _percentageChangeWidget(_change24h),
+              _descriptionCardWidget(_data['description']['en']),
             ],
           );
         } else {
@@ -104,19 +119,53 @@ class _HomePageState extends State<HomePage> {
       "${_rate.toStringAsFixed(2)} USD",
       style: const TextStyle(
         color: Colors.white,
-        fontSize: 15,
-        fontWeight: FontWeight.w400,
+        fontSize: 20,
+        fontWeight: FontWeight.w500,
       ),
     );
   }
 
   Widget _percentageChangeWidget(num _change) {
     return Text(
-      "${_change.toString()} %",
-      style: const TextStyle(
-        color: Colors.white,
+      _change >= 0 ? '+${_change.toString()}%' : '-${_change.toString()}%',
+      // "${_change.toString()} %",
+      style: TextStyle(
+        color: _change >= 0 ? Colors.green : Colors.red,
         fontSize: 15,
-        fontWeight: FontWeight.w300,
+        fontWeight: FontWeight.w600,
+      ),
+    );
+  }
+
+  Widget _coinImageWidget(String _imgUrl) {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: _deviceHeight! * 0.01),
+      height: _deviceHeight! * 0.15,
+      width: _deviceWidth! * 0.15,
+      decoration: BoxDecoration(
+        image: DecorationImage(
+            image: NetworkImage(
+          _imgUrl,
+        )),
+      ),
+    );
+  }
+
+  Widget _descriptionCardWidget(String _description) {
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: _deviceHeight! * 0.05),
+      height: _deviceHeight! * 0.45,
+      width: _deviceWidth! * 0.90,
+      padding: EdgeInsets.symmetric(
+        vertical: _deviceHeight! * 0.01,
+        horizontal: _deviceWidth! * 0.01,
+      ),
+      color: const Color.fromRGBO(83, 88, 206, 0.5),
+      child: Text(
+        _description,
+        style: const TextStyle(
+          color: Colors.white,
+        ),
       ),
     );
   }
