@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'dart:developer';
 
+import 'package:coincap/pages/details_page.dart';
 import 'package:coincap/services/http_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
@@ -94,12 +96,23 @@ class _HomePageState extends State<HomePage> {
 
           num _usdPrice = _data['market_data']['current_price']['usd'];
           num _change24h = _data['market_data']['price_change_percentage_24h'];
+
+          Map _exchangerates = _data['market_data']['current_price'];
           return Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             mainAxisSize: MainAxisSize.max,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              _coinImageWidget(_data['image']['large']),
+              GestureDetector(
+                onDoubleTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (BuildContext context) => DetailsPage(
+                      rates: _exchangerates,
+                    ),
+                  ),
+                ),
+                child: _coinImageWidget(_data['image']['large']),
+              ),
               _currentPriceWidget(_usdPrice),
               _percentageChangeWidget(_change24h),
               _descriptionCardWidget(_data['description']['en']),

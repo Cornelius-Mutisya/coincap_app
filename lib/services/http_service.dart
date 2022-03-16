@@ -21,7 +21,6 @@ class HTTPService {
     try {
       String _url = "$_baseUrl$_path";
       Response _response = await _dio.get(_url);
-      log(' 😄 Response:  $_response');
       return _response;
     } catch (e) {
       log('🔥 HTTPService error: $e');
